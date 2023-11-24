@@ -11,6 +11,8 @@ import { getTicketByEventId } from "../../services/Ticket";
 
 import ResponsiveEmployeeMenu from "../../components/menu/responsive/ResponsiveEmployeeMenu";
 
+import jsPDF from "jspdf";
+
 Chart.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 
@@ -36,6 +38,34 @@ function EventStadistic() {
   };
   Chart.register(CategoryScale);
   Chart.register(LinearScale);
+
+  const downloadChartAsPDF = (chartData) => {
+    const doc = new jsPDF();
+  
+    const canvas = document.getElementById('chart');
+    const imgData = canvas.toDataURL('image/png');
+  
+        doc.setFontSize(18);
+    doc.setTextColor(0, 0, 0);
+    doc.text(`Estadísticas ${title}`, 75, 25);
+    doc.setFontSize(16);
+    doc.text('Tickets y asistencia', 23, 35);
+    doc.line(23, 38, 190, 38);
+
+    doc.setFontSize(12);
+    doc.text(`Cantidad de tickets vendidos: ${ticketSold}`, 23, 45);
+    doc.text(`Cantidad de tickets canjeados: ${ticketCanjeados}`, 23, 55);
+    doc.text(`Cantidad de tickets no canjeados: ${ticketNoCanjeados}`, 23, 65);
+
+    doc.setFontSize(16);
+    doc.text('Tickets Canejados por hora', 23, 80);
+    doc.line(23, 83, 190, 83);
+
+    doc.addImage(imgData, 'JPEG', 25, 90);
+  
+    const fileName = 'Estadisticas generales.pdf';
+    doc.save(fileName);
+  };
   
   //obtengo los tiers del evento
   const getTiers = async () => {
@@ -191,10 +221,13 @@ function EventStadistic() {
               <h2>Tickets No Canjeados</h2>
             </div>
           </div>
-          <div class="w-full">
+          <div class="w-full justify-center items-center">
             <p class="text-blue font-medium text-xl mb-4">Tickets canjeados por hora</p>
-            <div class="w-full">
-              <Bar options={options} data={chartData} />
+            <div class="flex w-2/3 " >
+              <Bar options={options} data={chartData} id="chart"/>
+            </div>
+              <div class="flex items-end mb-14">
+              <button class="bg-blue text-white px-5 py-2" onClick={() => downloadChartAsPDF(chartData)}>Descargar PDF</button>
             </div>
           </div>
         </div>
@@ -203,4 +236,4 @@ function EventStadistic() {
   )
 }
 
-export default EventStadistic;
+export default EventStadistic; 

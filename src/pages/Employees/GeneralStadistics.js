@@ -6,6 +6,7 @@ import Filter from "../../components/filter/Filter";
 import AssignedEventsComp from "../../components/AssignedEvents";
 import { Link } from 'react-router-dom'
 import { format, parseISO } from "date-fns";
+import jsPDF from "jspdf";
 
 import { GetAllEvents, updateEvent } from "../../services/Event";
 import { getAllUpcomingEvents } from "../../services/Event";
@@ -50,6 +51,8 @@ function GeneralStadistics() {
 
           popularPlaces().then((data) => {
             setChartData(data);
+
+           
           });
 
         } else {
@@ -82,6 +85,25 @@ function GeneralStadistics() {
       })
   }, []);
 
+  const downloadChartAsPDF = (chartData) => {
+    const doc = new jsPDF();
+  
+    const canvas = document.getElementById('chart');
+    const imgData = canvas.toDataURL('image/png');
+  
+    doc.addImage(imgData, 'JPEG', 40, 60);
+
+    doc.setFontSize(18);
+    doc.setTextColor(0, 0, 0);
+    doc.text('Estadísticas Generales', 75, 25);
+    doc.setFontSize(12);
+    doc.text(`Usuarios activos: ${manyUsers}`, 23, 45);
+    doc.text(`Cantidad de eventos proximos: ${eventUpcoming}`, 23, 55);
+    doc.text(`Localidad mas popular: ${bestPlace}`, 23, 65);
+  
+    const fileName = 'Estadisticas generales.pdf';
+    doc.save(fileName);
+  };
   //Obtener el lugar donde mas eventos se realizaron
   const getMostFrequentPlace = (events) => {
     const places = events.map((event) => event.place);
@@ -219,13 +241,19 @@ function GeneralStadistics() {
             <h2>Localidad mas popular</h2>
           </div>
         </div>
-        <div class="w-1/2">
-          <p class="text-blue font-medium text-xl ">Estadisticas por localidad</p>
-          {chartData ? (
-            <Doughnut data={chartData} options={options} />
-          ) : (
-            <p>Loading chart data...</p>
-          )}
+        <div class="flex">
+          <div class="w-2/3">
+            <p class="text-blue font-medium text-xl ">Estadisticas por localidad</p>
+              {chartData ? (
+                  <Doughnut data={chartData} options={options} id="chart"/>
+                
+              ) : (
+                <p>Loading chart data...</p>
+              )}
+          </div>
+            <div class="flex items-end mb-14">
+              <button class="bg-blue text-white px-5 py-2" onClick={() => downloadChartAsPDF(chartData)}>Descargar PDF</button>
+            </div>
         </div>
         <p class="text-blue font-medium text-xl mb-4">Estadisticas por eventos</p>
         <hr class=" border-gray-300 mb-4" />
